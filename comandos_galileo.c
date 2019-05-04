@@ -60,14 +60,14 @@ root@galileo/ pedro:~# ./hello
 
 
 Minha rede:
-
+// exemplo de possiveis IPs
 ip: 191.253.169.196 (rede pública)
 
-ip: 192.168.0.102 (meu pc na rede local)
+ip: 192.168.0.102 (pc na rede local)
 
 
 
-Minha rede local: 192.168.0.1__
+Possivel rede local: 192.168.0.1__
 
 Galileo com MAC: 98:4F:EE:01:11:AA, ip: 192.168.0.107
 
