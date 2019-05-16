@@ -1,7 +1,20 @@
 
-import mraa
+
+
 import thread
 import time
+
+from socket import * # sockets
+
+# definicao das variaveis para o servidor 
+serverName = '' # ip do servidor (em branco)
+serverPort = 2114 # porta a se conectar
+serverSocket = socket(AF_INET,SOCK_STREAM) # criacao do socket TCP
+serverSocket.bind((serverName,serverPort)) # bind do ip do servidor com a porta
+serverSocket.listen(1) # socket pronto para "ouvir" conexoes
+print ("Servidor TCP esperando conexoes na porta %d ..." % (serverPort))
+   
+connectionSocket, addr = serverSocket.accept() # aceita as conexoes dos clientes
 
 #---- configuracoes de ligar e desligar ----
 gpio_1 = mraa.Gpio(2)
@@ -36,19 +49,47 @@ adc = mraa.Aio(ADC_PIN)
 gpio_6 = mraa.Gpio(11)
 gpio_6.dir(mraa.DIR_OUT)
 
-while True:
-	# ler o estado dos botoes de ligar e desligar
-	liga = gpio_1.read()
-	desliga = gpio_2.read()
-	if liga == 1: 
-		aux = 1
+# Define a function for the thread
+def threads( threadName, delay):
+   while 1:
+      time.sleep(delay)
+      if(threadName == 1):
+         msg = connectionSocket.recv(1024)
+         print  msg
+         if msg == "sim":
+            connectionSocket.send("Valor do ADC: x ") #precisa mudar pra enviar o valor do ADC
+         else: break
+      elif threadName == 2:
+         #print "botar thread para ADC"
+		 value = adc.read()             # ler valor do ADC
+         led_intensity = value/ROT_MAX  # determina o duty cycle baseado em value
 
-	if desliga == 1: 
-	    aux = 0
-		
-	if aux == 1:	# sistema acionado
-		value = adc.read()             # ler valor do ADC
-		led_intensity = value/ROT_MAX  # determina o duty cycle baseado em value
+      elif threadName == 3:
+         #print "botar thread para ler botoes"
+		 # ler o estado dos botoes de ligar e desligar
+		 liga = gpio_1.read()
+		 desliga = gpio_2.read()
+		 if liga == 1: 
+			aux = 1
+
+		 if desliga == 1: 
+			aux = 0
+            
+      elif threadName == 4:
+         #print "interrupcao" # entra aqui a cada 5s
+         
+
+try:
+   thread.start_new_thread( threads, (1, 2, ) )
+   thread.start_new_thread( threads, (2, 3 ) )
+   thread.start_new_thread( threads, (3, 4 ) )
+   thread.start_new_thread( threads, (4, 5 ) )
+except:
+   print ("Error: unable to start thread")
+
+while 1:
+    rqs = str(msg.decode('utf-8'))
+    if aux == 1:	# sistema acionado
 		pwm.write(led_intensity)
 
 		if value >= 0 and value < 100:
@@ -89,9 +130,6 @@ while True:
 		gpio_5.write(0)	# LED vermelho desligado
 		# alarme desligado
 		gpio_6.write(0)
-	
-	
 		
-
-
-
+        connectionSocket.close() # encerra o socket com o cliente
+	serverSocket.close() # encerra o socket do servidor
