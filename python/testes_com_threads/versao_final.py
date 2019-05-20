@@ -42,7 +42,7 @@ gpio_6.dir(mraa.DIR_OUT)
 def thread_ADC(ROT_MAX): 
     
     value = adc.read()             # ler valor do ADC
-	led_intensity = value/ROT_MAX  # determina o duty cycle baseado em value 
+    led_intensity = value/ROT_MAX  # determina o duty cycle baseado em value 
     
 def thread_PWM(): 
     
